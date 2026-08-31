@@ -1,0 +1,223 @@
+# Agglomerative Hierarchical Clustering Assignment
+
+## 1. Initial Distance Matrix for 6 Food Delivery Orders
+
+Consider the following 6 food delivery orders. Each order has two features: **delivery time (minutes)** and **distance (km)**.
+
+| Order | Delivery Time | Distance |
+| ----- | ------------: | -------: |
+| O1    |            20 |        2 |
+| O2    |            25 |        3 |
+| O3    |            30 |        5 |
+| O4    |            45 |        8 |
+| O5    |            50 |        9 |
+| O6    |            55 |       10 |
+
+For two points, Euclidean distance is calculated using:
+
+d = √((x2 - x1)² + (y2 - y1)²)
+
+For example, distance between O1 = (20,2) and O2 = (25,3):
+
+d = √((25-20)² + (3-2)²)
+
+d = √(25 + 1)
+
+d = √26 = **5.10**
+
+genui{"learning_viz":{"type_id":"DISTANCE_FORMULA","content":"d=\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}"}}
+
+The complete distance matrix is:
+
+|        |    O1 |    O2 |    O3 |    O4 |    O5 |    O6 |
+| ------ | ----: | ----: | ----: | ----: | ----: | ----: |
+| **O1** |  0.00 |  5.10 | 10.30 | 27.20 | 31.24 | 35.36 |
+| **O2** |  5.10 |  0.00 |  5.39 | 22.83 | 27.20 | 31.24 |
+| **O3** | 10.30 |  5.39 |  0.00 | 18.44 | 23.32 | 27.20 |
+| **O4** | 27.20 | 22.83 | 18.44 |  0.00 |  5.10 | 10.30 |
+| **O5** | 31.24 | 27.20 | 23.32 |  5.10 |  0.00 |  5.10 |
+| **O6** | 35.36 | 31.24 | 27.20 | 10.30 |  5.10 |  0.00 |
+
+The diagonal values are **0** because the distance from a point to itself is zero.
+
+---
+
+# 2. Agglomerative Hierarchical Clustering on 8 Songs
+
+We will use two features:
+
+* Tempo (BPM)
+* Energy
+
+Python code:
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import linkage, dendrogram
+
+# 8 songs: [tempo, energy]
+songs = np.array([
+    [90, 0.30],
+    [95, 0.35],
+    [100, 0.40],
+    [120, 0.65],
+    [125, 0.70],
+    [130, 0.75],
+    [150, 0.90],
+    [155, 0.95]
+])
+
+# Perform hierarchical clustering
+Z = linkage(songs, method='single')
+
+# Plot dendrogram
+plt.figure(figsize=(10, 6))
+dendrogram(
+    Z,
+    labels=["Song1", "Song2", "Song3", "Song4",
+            "Song5", "Song6", "Song7", "Song8"]
+)
+
+plt.title("Hierarchical Clustering of Songs")
+plt.xlabel("Songs")
+plt.ylabel("Distance")
+plt.grid()
+plt.show()
+```
+
+### Explanation
+
+The dendrogram shows how the 8 songs are progressively merged into larger groups. Songs that are more similar in tempo and energy are joined at smaller distances, while less similar songs are joined at larger distances.
+
+---
+
+# 3. Compare Single, Complete, and Average Linkage
+
+We can use the same song dataset and generate three dendrograms.
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import linkage, dendrogram
+
+# Song dataset
+songs = np.array([
+    [90, 0.30],
+    [95, 0.35],
+    [100, 0.40],
+    [120, 0.65],
+    [125, 0.70],
+    [130, 0.75],
+    [150, 0.90],
+    [155, 0.95]
+])
+
+# Calculate linkage matrices
+Z_single = linkage(songs, method='single')
+Z_complete = linkage(songs, method='complete')
+Z_average = linkage(songs, method='average')
+
+plt.figure(figsize=(18, 6))
+
+# Single linkage
+plt.subplot(1, 3, 1)
+dendrogram(Z_single, no_labels=True)
+plt.title("Single Linkage")
+plt.xlabel("Songs")
+plt.ylabel("Distance")
+
+# Complete linkage
+plt.subplot(1, 3, 2)
+dendrogram(Z_complete, no_labels=True)
+plt.title("Complete Linkage")
+plt.xlabel("Songs")
+plt.ylabel("Distance")
+
+# Average linkage
+plt.subplot(1, 3, 3)
+dendrogram(Z_average, no_labels=True)
+plt.title("Average Linkage")
+plt.xlabel("Songs")
+plt.ylabel("Distance")
+
+plt.tight_layout()
+plt.show()
+```
+
+### Comparison
+
+**Single linkage:** Uses the closest pair of points between two clusters. It can create chain-like clusters.
+
+**Complete linkage:** Uses the farthest pair of points between two clusters. It generally produces more compact clusters.
+
+**Average linkage:** Uses the average distance between points in two clusters. It provides a balance between single and complete linkage.
+
+Therefore, the shape and height of the dendrogram change because each method calculates the distance between clusters differently.
+
+---
+
+# 4. Euclidean and Manhattan Distance Function
+
+```python
+import math
+
+def calculate_distances(point1, point2):
+    x1, y1 = point1
+    x2, y2 = point2
+
+    # Euclidean distance
+    euclidean = math.sqrt(
+        (x2 - x1)**2 +
+        (y2 - y1)**2
+    )
+
+    # Manhattan distance
+    manhattan = abs(x2 - x1) + abs(y2 - y1)
+
+    return euclidean, manhattan
+
+
+# Three pairs of coordinates
+pairs = [
+    ([20, 2], [25, 3]),
+    ([30, 5], [45, 8]),
+    ([50, 9], [55, 10])
+]
+
+for p1, p2 in pairs:
+    euclidean, manhattan = calculate_distances(p1, p2)
+
+    print("Points:", p1, p2)
+    print("Euclidean Distance:", round(euclidean, 2))
+    print("Manhattan Distance:", manhattan)
+    print()
+```
+
+### Expected Output
+
+```text
+Points: [20, 2] [25, 3]
+Euclidean Distance: 5.1
+Manhattan Distance: 6
+
+Points: [30, 5] [45, 8]
+Euclidean Distance: 15.3
+Manhattan Distance: 18
+
+Points: [50, 9] [55, 10]
+Euclidean Distance: 5.1
+Manhattan Distance: 6
+```
+
+### Explanation
+
+Euclidean distance measures the straight-line distance between two points. Manhattan distance measures the total horizontal and vertical distance between them.
+
+---
+
+# 5. Best Linkage Method for a Similar Movies Feature
+
+For a **similar movies** feature, I would choose **average linkage**.
+
+Average linkage considers the average distance between all points in two clusters, making it less sensitive to individual unusual movies than single linkage. It also avoids being as strict as complete linkage. When grouping movies based on user ratings, average linkage can therefore create balanced and meaningful groups of movies with similar rating patterns.
