@@ -1,0 +1,288 @@
+# DBSCAN Clustering Assignment
+
+## 1. Apply DBSCAN on Mall Customers Dataset
+
+First, download the **Mall Customers.csv** dataset and keep it in the same folder as your Python file.
+
+We will use:
+
+* **Annual Income (k$)**
+* **Spending Score (1-100)**
+
+Python Code:
+
+```python
+import pandas as pd
+from sklearn.cluster import DBSCAN
+
+# Load dataset
+data = pd.read_csv("Mall_Customers.csv")
+
+# Select features
+X = data[["Annual Income (k$)", "Spending Score (1-100)"]]
+
+# Apply DBSCAN
+dbscan = DBSCAN(eps=5, min_samples=5)
+labels = dbscan.fit_predict(X)
+
+# Number of clusters
+n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+
+# Number of noise points
+n_noise = list(labels).count(-1)
+
+print("Number of clusters:", n_clusters)
+print("Number of noise points:", n_noise)
+```
+
+**Note:** DBSCAN uses `-1` to represent noise/outlier points.
+
+---
+
+# 2. Visualize DBSCAN Clustering
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.cluster import DBSCAN
+
+# Load dataset
+data = pd.read_csv("Mall_Customers.csv")
+
+# Select features
+X = data[["Annual Income (k$)", "Spending Score (1-100)"]]
+
+# DBSCAN
+dbscan = DBSCAN(eps=5, min_samples=5)
+labels = dbscan.fit_predict(X)
+
+# Plot each cluster
+unique_labels = set(labels)
+
+for label in unique_labels:
+    if label == -1:
+        plt.scatter(
+            X.iloc[labels == label, 0],
+            X.iloc[labels == label, 1],
+            c="black",
+            marker="x",
+            label="Noise"
+        )
+    else:
+        plt.scatter(
+            X.iloc[labels == label, 0],
+            X.iloc[labels == label, 1],
+            label=f"Cluster {label}"
+        )
+
+plt.xlabel("Annual Income (k$)")
+plt.ylabel("Spending Score (1-100)")
+plt.title("DBSCAN Clustering - Mall Customers")
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+**Explanation:**
+Each color represents a different cluster. The black `x` marks represent points that DBSCAN considers noise or outliers.
+
+---
+
+# 3. Change DBSCAN Parameters
+
+We can try different values of `eps` and `min_samples` and compare the results.
+
+```python
+import pandas as pd
+from sklearn.cluster import DBSCAN
+
+data = pd.read_csv("Mall_Customers.csv")
+
+X = data[["Annual Income (k$)", "Spending Score (1-100)"]]
+
+# Different parameter combinations
+settings = [
+    (3, 5),
+    (5, 5),
+    (8, 5),
+    (5, 10)
+]
+
+for eps, min_samples in settings:
+
+    dbscan = DBSCAN(
+        eps=eps,
+        min_samples=min_samples
+    )
+
+    labels = dbscan.fit_predict(X)
+
+    clusters = len(set(labels)) - (1 if -1 in labels else 0)
+    noise = list(labels).count(-1)
+
+    print(
+        "eps =", eps,
+        "min_samples =", min_samples,
+        "clusters =", clusters,
+        "noise points =", noise
+    )
+```
+
+### Short Summary
+
+A smaller `eps` creates smaller neighborhoods, so DBSCAN usually produces more noise points and may create more small clusters. A larger `eps` includes more nearby points and can reduce the number of noise points. Increasing `min_samples` makes it harder for a point to become part of a cluster, which can increase the number of noise points. Therefore, `eps` and `min_samples` should be selected carefully based on the dataset.
+
+---
+
+# 4. Compare DBSCAN and K-Means
+
+We will use the same two features:
+
+* Annual Income
+* Spending Score
+
+First, DBSCAN finds the number of clusters. Then we use that same number of clusters for K-Means.
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.cluster import DBSCAN, KMeans
+
+# Load dataset
+data = pd.read_csv("Mall_Customers.csv")
+
+# Select same features
+X = data[["Annual Income (k$)", "Spending Score (1-100)"]]
+
+# ---------------- DBSCAN ----------------
+dbscan = DBSCAN(eps=5, min_samples=5)
+db_labels = dbscan.fit_predict(X)
+
+# Find number of DBSCAN clusters
+k = len(set(db_labels)) - (1 if -1 in db_labels else 0)
+
+print("DBSCAN clusters:", k)
+
+# ---------------- K-MEANS ----------------
+kmeans = KMeans(
+    n_clusters=k,
+    random_state=42,
+    n_init=10
+)
+
+kmeans_labels = kmeans.fit_predict(X)
+
+# ---------------- Plot ----------------
+plt.figure(figsize=(12, 5))
+
+# DBSCAN plot
+plt.subplot(1, 2, 1)
+
+for label in set(db_labels):
+    if label == -1:
+        plt.scatter(
+            X.iloc[db_labels == label, 0],
+            X.iloc[db_labels == label, 1],
+            c="black",
+            marker="x",
+            label="Noise"
+        )
+    else:
+        plt.scatter(
+            X.iloc[db_labels == label, 0],
+            X.iloc[db_labels == label, 1],
+            label=f"Cluster {label}"
+        )
+
+plt.xlabel("Annual Income (k$)")
+plt.ylabel("Spending Score")
+plt.title("DBSCAN")
+plt.legend()
+
+# K-Means plot
+plt.subplot(1, 2, 2)
+
+plt.scatter(
+    X.iloc[:, 0],
+    X.iloc[:, 1],
+    c=kmeans_labels
+)
+
+plt.xlabel("Annual Income (k$)")
+plt.ylabel("Spending Score")
+plt.title("K-Means")
+
+plt.tight_layout()
+plt.show()
+```
+
+### Comparison
+
+**DBSCAN** is better at detecting outliers because it labels isolated points as noise. It can also find clusters with irregular or oddly-shaped boundaries.
+
+**K-Means** works well when clusters are roughly spherical and similar in size, but it does not naturally identify noise or outliers.
+
+Therefore, **DBSCAN is generally better for datasets containing outliers or oddly-shaped clusters**, while K-Means is simpler and effective for well-separated, spherical clusters.
+
+---
+
+# 5. DBSCAN on a Non-Spherical Dataset
+
+For this task, we will use the `make_moons` dataset. It creates two curved, non-spherical clusters.
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_moons
+from sklearn.cluster import DBSCAN
+
+# Create moon-shaped dataset
+X, y = make_moons(
+    n_samples=200,
+    noise=0.08,
+    random_state=42
+)
+
+# Apply DBSCAN
+dbscan = DBSCAN(
+    eps=0.2,
+    min_samples=5
+)
+
+labels = dbscan.fit_predict(X)
+
+# Find noise points
+noise_indices = np.where(labels == -1)[0]
+
+print("Noise point indices:")
+print(noise_indices)
+
+print("Number of noise points:", len(noise_indices))
+
+# Plot clusters
+plt.scatter(
+    X[:, 0],
+    X[:, 1],
+    c=labels
+)
+
+plt.xlabel("Feature 1")
+plt.ylabel("Feature 2")
+plt.title("DBSCAN on Make-Moons Dataset")
+plt.grid()
+plt.show()
+```
+
+### Explanation
+
+The `make_moons` dataset contains two curved clusters. K-Means may struggle with this type of shape because it generally creates spherical clusters.
+
+DBSCAN is more suitable because it groups points based on **density**, allowing it to identify the two curved moon-shaped clusters.
+
+The following code:
+
+```python
+noise_indices = np.where(labels == -1)[0]
+```
+
+finds and prints the **indices of all points identified as noise/outliers** by DBSCAN.
