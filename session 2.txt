@@ -1,0 +1,313 @@
+Sure — here is the **whole assignment in plain text**, ready to copy and paste.
+
+# K-MEANS CLUSTERING ASSIGNMENT
+
+## 1. Plot the points, choose two initial centroids, and assign points manually
+
+We have the following 2D points representing food delivery locations:
+
+Points = [[2,3], [5,8], [1,2], [6,9], [7,7]]
+
+We randomly choose two initial centroids:
+
+Centroid 1 = [2,3]
+Centroid 2 = [6,9]
+
+Python Code:
+
+```python
+import matplotlib.pyplot as plt
+
+points = [[2,3], [5,8], [1,2], [6,9], [7,7]]
+
+# Initial centroids
+centroids = [[2,3], [6,9]]
+
+# Plot points
+x = [p[0] for p in points]
+y = [p[1] for p in points]
+
+plt.scatter(x, y)
+plt.scatter([2,6], [3,9], marker='X', s=150)
+
+for i, p in enumerate(points):
+    plt.text(p[0], p[1], f"P{i+1}")
+
+plt.xlabel("X")
+plt.ylabel("Y")
+plt.title("Food Delivery Locations")
+plt.grid()
+plt.show()
+```
+
+Euclidean Distance Formula:
+
+d = √((x1 - x2)² + (y1 - y2)²)
+
+Manual calculation:
+
+| Point | Distance from C1 | Distance from C2 | Cluster |
+| ----- | ---------------: | ---------------: | ------- |
+| [2,3] |             0.00 |             7.21 | C1      |
+| [5,8] |             5.83 |             1.41 | C2      |
+| [1,2] |             1.41 |             8.60 | C1      |
+| [6,9] |             7.21 |             0.00 | C2      |
+| [7,7] |             6.40 |             2.24 | C2      |
+
+Final assignment:
+
+Cluster 1 = [2,3], [1,2]
+
+Cluster 2 = [5,8], [6,9], [7,7]
+
+The points are assigned to the cluster whose centroid has the smallest Euclidean distance.
+
+---
+
+## 2. Python function using Euclidean distance
+
+Python Code:
+
+```python
+import math
+
+def assign_clusters(points, centroids):
+    assignments = []
+
+    for point in points:
+        distances = []
+
+        for centroid in centroids:
+            distance = math.sqrt(
+                (point[0] - centroid[0])**2 +
+                (point[1] - centroid[1])**2
+            )
+            distances.append(distance)
+
+        assignments.append(distances.index(min(distances)))
+
+    return assignments
+
+
+points = [[2,3], [5,8], [1,2], [6,9], [7,7]]
+centroids = [[2,3], [6,9]]
+
+print(assign_clusters(points, centroids))
+```
+
+Output:
+
+```text
+[0, 1, 0, 1, 1]
+```
+
+Here, 0 represents Cluster 1 and 1 represents Cluster 2.
+
+---
+
+## 3. Update the function to support Euclidean and Manhattan distance
+
+Manhattan Distance Formula:
+
+d = |x1 - x2| + |y1 - y2|
+
+Python Code:
+
+```python
+def assign_clusters(points, centroids, distance_type="euclidean"):
+    assignments = []
+
+    for point in points:
+        distances = []
+
+        for centroid in centroids:
+
+            if distance_type == "euclidean":
+                distance = (
+                    (point[0] - centroid[0])**2 +
+                    (point[1] - centroid[1])**2
+                ) ** 0.5
+
+            elif distance_type == "manhattan":
+                distance = (
+                    abs(point[0] - centroid[0]) +
+                    abs(point[1] - centroid[1])
+                )
+
+            else:
+                raise ValueError("Choose euclidean or manhattan")
+
+            distances.append(distance)
+
+        assignments.append(distances.index(min(distances)))
+
+    return assignments
+
+
+points = [[2,3], [5,8], [1,2], [6,9], [7,7]]
+centroids = [[2,3], [6,9]]
+
+print("Euclidean:", assign_clusters(points, centroids, "euclidean"))
+print("Manhattan:", assign_clusters(points, centroids, "manhattan"))
+```
+
+Output:
+
+```text
+Euclidean: [0, 1, 0, 1, 1]
+Manhattan: [0, 1, 0, 1, 1]
+```
+
+Explanation:
+
+Euclidean distance measures the straight-line distance between two points.
+
+Manhattan distance measures the distance by moving horizontally and vertically.
+
+The function allows the user to select either distance by passing "euclidean" or "manhattan".
+
+---
+
+## 4. Update the centroids
+
+The new centroid of each cluster is calculated by taking the mean of the x and y coordinates of all points belonging to that cluster.
+
+Python Code:
+
+```python
+def update_centroids(points, assignments, k):
+    centroids = []
+
+    for cluster in range(k):
+
+        cluster_points = [
+            points[i]
+            for i in range(len(points))
+            if assignments[i] == cluster
+        ]
+
+        if cluster_points:
+            x_mean = sum(p[0] for p in cluster_points) / len(cluster_points)
+            y_mean = sum(p[1] for p in cluster_points) / len(cluster_points)
+
+            centroids.append([x_mean, y_mean])
+        else:
+            centroids.append([0, 0])
+
+    return centroids
+
+
+points = [[2,3], [5,8], [1,2], [6,9], [7,7]]
+
+assignments = [0, 1, 0, 1, 1]
+
+print(update_centroids(points, assignments, 2))
+```
+
+Output:
+
+```text
+[[1.5, 2.5], [6.0, 8.0]]
+```
+
+Explanation:
+
+Cluster 1 contains:
+
+[2,3] and [1,2]
+
+New centroid:
+
+x = (2 + 1) / 2 = 1.5
+
+y = (3 + 2) / 2 = 2.5
+
+Therefore:
+
+Cluster 1 centroid = [1.5, 2.5]
+
+Cluster 2 contains:
+
+[5,8], [6,9], [7,7]
+
+New centroid:
+
+x = (5 + 6 + 7) / 3 = 6
+
+y = (8 + 9 + 7) / 3 = 8
+
+Therefore:
+
+Cluster 2 centroid = [6.0, 8.0]
+
+---
+
+## 5. Elbow Method
+
+The Elbow Method is used to find the optimal number of clusters in K-Means clustering.
+
+For this example, we use food delivery locations with two features:
+
+1. Average delivery time
+2. Number of daily orders
+
+Dataset:
+
+```text
+[15,20], [18,25], [20,22],
+[30,50], [32,55], [35,52],
+[50,90], [52,95], [55,100],
+[70,140], [72,145], [75,150]
+```
+
+Python Code:
+
+```python
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+
+# Food delivery dataset
+# [delivery time, daily orders]
+
+data = [
+    [15,20], [18,25], [20,22],
+    [30,50], [32,55], [35,52],
+    [50,90], [52,95], [55,100],
+    [70,140], [72,145], [75,150]
+]
+
+wcss = []
+
+for k in range(1, 7):
+    model = KMeans(n_clusters=k, random_state=42, n_init=10)
+    model.fit(data)
+    wcss.append(model.inertia_)
+
+# Plot Elbow Method
+plt.plot(range(1, 7), wcss, marker='o')
+
+plt.xlabel("Number of Clusters (k)")
+plt.ylabel("Within-Cluster Sum of Squares (WCSS)")
+plt.title("Elbow Method")
+plt.grid()
+
+plt.show()
+```
+
+Explanation:
+
+WCSS stands for Within-Cluster Sum of Squares. It measures how close the points are to their cluster centroids.
+
+As the value of k increases, WCSS decreases. However, after a certain point, increasing k does not provide much improvement.
+
+The point where the graph starts to bend is called the "elbow".
+
+For this dataset, the elbow is approximately at:
+
+```text
+k = 3
+```
+
+Therefore, the optimal number of clusters is approximately **3**.
+
+These three clusters can represent different types of food delivery locations based on delivery time and order volume.
