@@ -1,0 +1,206 @@
+# PCA and K-Means Clustering Assignment
+
+## 1. Apply PCA to the Iris Dataset
+
+```python
+from sklearn.datasets import load_iris
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+# Load Iris dataset
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+# Standardize the data
+X_scaled = StandardScaler().fit_transform(X)
+
+# Apply PCA with 2 components
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+
+# Print explained variance ratio
+print("Explained Variance Ratio:")
+print(pca.explained_variance_ratio_)
+```
+
+### Explanation
+
+The Iris dataset has 4 features. PCA reduces these 4 features to 2 principal components while preserving as much information as possible.
+
+The `explained_variance_ratio_` tells us how much of the original data's variation is represented by each principal component.
+
+---
+
+## 2. Plot the 2D PCA Projection
+
+```python
+import matplotlib.pyplot as plt
+
+# Plot each Iris species
+for i in range(3):
+    plt.scatter(
+        X_pca[y == i, 0],
+        X_pca[y == i, 1],
+        label=iris.target_names[i]
+    )
+
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+plt.title("Iris Dataset - PCA")
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+### Explanation
+
+The scatter plot shows the Iris dataset in two dimensions after PCA.
+
+The three colors represent the three species:
+
+* Setosa
+* Versicolor
+* Virginica
+
+PCA makes it easier to visualize relationships and clusters in high-dimensional data.
+
+---
+
+# 3. PCA on Zomato Restaurant Dataset
+
+Suppose we have a Zomato dataset containing **10 numerical features**, such as:
+
+* Rating
+* Price
+* Votes
+* Delivery time
+* Number of cuisines
+* Average cost
+* Online orders
+* Table booking
+* Restaurant popularity
+* Customer visits
+
+The following code reduces these 10 features to 3 principal components.
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+# Example Zomato dataset with 10 features
+np.random.seed(42)
+
+X_zomato = np.random.rand(100, 10)
+
+# Standardize data
+X_scaled = StandardScaler().fit_transform(X_zomato)
+
+# Apply PCA with 3 components
+pca = PCA(n_components=3)
+X_pca = pca.fit_transform(X_scaled)
+
+# Calculate cumulative explained variance
+cumulative_variance = np.cumsum(
+    pca.explained_variance_ratio_
+)
+
+# Plot cumulative explained variance
+plt.plot(
+    range(1, 4),
+    cumulative_variance,
+    marker='o'
+)
+
+plt.xlabel("Number of Principal Components")
+plt.ylabel("Cumulative Explained Variance")
+plt.title("Cumulative Explained Variance - Zomato Dataset")
+plt.grid()
+plt.show()
+
+print("Explained variance ratio:")
+print(pca.explained_variance_ratio_)
+
+print("Cumulative explained variance:")
+print(cumulative_variance)
+```
+
+### Explanation
+
+The cumulative explained variance shows how much information is retained as we add principal components.
+
+For a real Zomato CSV file, replace the example `X_zomato` data with the 10 numerical columns from the dataset.
+
+---
+
+# 4. K-Means on PCA-Transformed Iris Data
+
+We now use the PCA-transformed Iris data from Task 1 and apply K-Means with **3 clusters**.
+
+```python
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+# Apply K-Means
+kmeans = KMeans(
+    n_clusters=3,
+    random_state=42,
+    n_init=10
+)
+
+clusters = kmeans.fit_predict(X_pca)
+
+# Plot clusters
+plt.scatter(
+    X_pca[:, 0],
+    X_pca[:, 1],
+    c=clusters
+)
+
+# Plot centroids
+centroids = kmeans.cluster_centers_
+
+plt.scatter(
+    centroids[:, 0],
+    centroids[:, 1],
+    marker='X',
+    s=200,
+    label='Centroids'
+)
+
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+plt.title("K-Means Clustering on PCA Iris Data")
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+### Explanation
+
+K-Means divides the PCA-transformed Iris data into **3 clusters**.
+
+The `X` markers represent the **centroids** of the three clusters.
+
+---
+
+# 5. Evaluate K-Means Using Silhouette Score
+
+```python
+from sklearn.metrics import silhouette_score
+
+# Calculate silhouette score
+score = silhouette_score(X_pca, clusters)
+
+print("Silhouette Score:", score)
+```
+
+### Explanation
+
+The silhouette score ranges from **-1 to +1**.
+
+A value close to **+1** indicates that the clusters are well separated and the points are assigned to appropriate clusters. A value close to **0** means the clusters overlap, while a negative value suggests poor clustering.
+
+For the Iris dataset, the K-Means result generally gives a **reasonably good silhouette score**, indicating that the three clusters have useful separation in the PCA-reduced data.
